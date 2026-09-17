@@ -1,29 +1,37 @@
 #include <stdint.h>
+#include "SYSTICK.h"
 
-#define RCC_BASE      0x40021000
-#define GPIOC_BASE    0x40011000
+// Định nghĩa địa chỉ thanh ghi RCC và GPIOA (STM32F1)
+#define RCC_APB2ENR (*((volatile uint32_t *)0x40021018))
+#define GPIOA_CRL   (*((volatile uint32_t *)0x40010800))
+#define GPIOA_ODR   (*((volatile uint32_t *)0x4001080C))
 
-#define RCC_APB2ENR   (*(volatile uint32_t *)(RCC_BASE + 0x18))
-#define GPIOC_CRH     (*(volatile uint32_t *)(GPIOC_BASE + 0x04))
-#define GPIOC_ODR     (*(volatile uint32_t *)(GPIOC_BASE + 0x0C))
+int main(void)
+{
+    uint32_t t1=0, t2=0, t3=0;
 
-void delay(volatile uint32_t count) {
-    while (count--) {
-        __asm__("nop");
+    // Cấp xung nhịp cho GPIOA
+    RCC_APB2ENR |= (1<<2); 
+
+    // Cấu hình PA0, PA1, PA2 làm Output Push-Pull, max speed 50MHz
+    GPIOA_CRL &= ~(uint32_t)(0xFFF);
+    GPIOA_CRL |= (0x333);
+    
+    SysTick_Init();
+    
+    while (1)
+    {
+        if(millis() - t1 > 10000){
+            GPIOA_ODR ^= (1<<0);
+            t1 = millis();
+        }
+        if(millis() - t2 > 1000){
+            GPIOA_ODR ^= (1<<1);
+            t2 = millis();
+        }
+        if(millis() - t3 > 100){
+            GPIOA_ODR ^= (1<<2);
+            t3 = millis();
+        }
     }
-}
-
-int main(void) {
-    // 1. Bật Clock cho Port C (Bit 4)
-    RCC_APB2ENR |= (1 << 4);
-
-    // 2. Cấu hình PC13: Output Push-Pull, tốc độ 2MHz (Mode: 10, CNF: 00)
-    GPIOC_CRH &= ~(0xF << 20); // Xóa cấu hình cũ của Pin 13
-    GPIOC_CRH |= (0x2 << 20);  // Đặt Mode 2MHz Push-Pull
-
-    while (1) {
-        GPIOC_ODR ^= (1 << 13); // Đảo trạng thái chân PC13
-        delay(500000);
-    }
-    return 0;
 }

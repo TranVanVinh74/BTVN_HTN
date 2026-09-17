@@ -1,11 +1,11 @@
 # Trình biên dịch và cờ biên dịch
 CC      = arm-none-eabi-gcc
 OBJCOPY = arm-none-eabi-objcopy
-CFLAGS  = -mcpu=cortex-m3 -mthumb -Wall -O0
+CFLAGS  = -mcpu=cortex-m3 -mthumb -Wall -O0 -I.
 LDFLAGS = -T linker.ld -nostdlib
 
 # Danh sách file nguồn và file đích
-SRCS    = main.c startup.c
+SRCS    = main.c startup.c SYSTICK.c
 TARGET  = main
 
 # Mục tiêu mặc định: build ra file .bin
